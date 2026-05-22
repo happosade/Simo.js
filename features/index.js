@@ -5,8 +5,14 @@ var regexes = {};
 require("fs").readdirSync("/simobot/features/").forEach(function(file) {
     if (file !== 'index.js' && file.indexOf('.') !== 0) {
         console.log("file: " + file);
+        let feature;
+        try {
+            feature = require("/simobot/features/" + file.substring(0, file.length - 3));
+        } catch (loadErr) {
+            console.error("Failed to load feature " + file + ": " + loadErr.message);
+            return;
+        }
         files.push(file);
-        const feature = require("/simobot/features/" + file.substring(0, file.length - 3));
         if (feature.init) {
             inits.push(feature.init);
         }

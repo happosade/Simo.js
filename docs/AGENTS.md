@@ -39,11 +39,16 @@ The `/simojs-data/` directory is bind-mounted from the host. Write any state fil
 The timer SQLite database is at `/simojs-data/simojs.sqlite`.  
 The macros JSON is at `/simojs-data/macros.js`.
 
-### 5. Node.js version is old (v8)
+### 5. Node.js versions
 
-The container runs Node.js v8.17.0. Use `var`/`function` or ES6 that works on v8.  
-**Avoid:** `?.` optional chaining, `??` nullish coalescing, `async/await` in older patterns.  
-Most features already use `const`/`let`, arrow functions, and `Promise` — that is fine.
+**Production** (`Dockerfile`) runs Node.js v8.17.0 via NVM on Debian 10.  
+**Dev** (`Dockerfile.dev`) runs Node.js v20 on Debian Bullseye.
+
+When writing new feature code, target the lowest common denominator (Node v8):
+- ✅ `const`/`let`, arrow functions, `Promise`, `async/await`, template literals
+- ❌ `?.` optional chaining, `??` nullish coalescing (not in v8)
+
+In practice, features that are dev-only or call external APIs are fine with modern JS.
 
 ### 6. No test suite exists yet
 
@@ -184,6 +189,8 @@ External services (all via docker-compose network):
 ## Adding a Dependency
 
 1. Add it to `package.json` `dependencies`
-2. Rebuild the container: `docker-compose build simojs && docker-compose up -d simojs`
+2. Rebuild the container: `docker compose -f docker-compose.dev.yml up --build simojs`
+3. For production: `docker-compose build simojs && docker-compose up -d simojs`
 
-The `npm install` step runs inside the Docker build, not on the host.
+The `npm install` step runs inside the Docker build, not on the host.  
+`Dockerfile.dev` uses a multi-stage build so `npm install` runs without access to runtime secrets.

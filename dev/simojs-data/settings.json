@@ -1,0 +1,46 @@
+{
+    "general": {
+        "server": "ircd",
+        "channels": ["#test"],
+        "botnick": "simo",
+        "username": "simo",
+        "password": "",
+        "port": 6667,
+        "websocketport": null
+    },
+    "twitter": {
+        "consumer_key": "",
+        "consumer_secret": "",
+        "access_token_key": "",
+        "access_token_secret": ""
+    },
+    "translator": {
+        "grant_type": "",
+        "client_id": "",
+        "client_secret": "",
+        "scope": ""
+    },
+    "wordpress": {
+        "username": "default",
+        "password": "default"
+    },
+    "email": {
+        "fileUrl": "./emailtemplate",
+        "filePath": ""
+    },
+    "azure": {
+        "vision": ""
+    },
+    "openai": {
+        "api_key": ""
+    },
+    "stablediffusionReplicate": {
+        "api_key": ""
+    },
+    "dalle": {
+        "api_key": ""
+    },
+    "stabilityAI": {
+        "api_key": ""
+    }
+}
