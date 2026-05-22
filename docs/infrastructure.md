@@ -42,10 +42,45 @@ Defined in `docker-compose.yml` (version 2):
 - Bind mount: `./influxdb_data/` → `/var/lib/influxdb`
 - Used by `lib/simoInflux.js` to record command invocation metrics
 
-### `ircdjs` (optional)
+### `ircdjs` (optional — production)
 - Built from `Dockerfile_ircdjs`
 - Local IRC server for development — **commented out** in docker-compose by default
 - Uncomment to run a fully local dev environment without an external IRC server
+
+---
+
+## Local Development Stack (`docker-compose.dev.yml`)
+
+A self-contained dev stack that needs no external IRC server, API keys, or GPU.
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+### Services included
+
+| Service | Image / Build | Purpose |
+|---|---|---|
+| `ircd` | `Dockerfile_ircdjs` (node:18-alpine) | Local IRC server on port 6667 |
+| `simojs` | `Dockerfile.dev` (multi-stage Node 20) | The bot, connecting to `ircd:6667` |
+| `redis` | `redis:7-alpine` | Key-value state |
+
+### Dev-specific files
+
+| File | Purpose |
+|---|---|
+| `docker-compose.dev.yml` | Dev compose definition |
+| `Dockerfile.dev` | Multi-stage build: npm install runs without secrets |
+| `dev/simojs-data/settings.json` | Dev config — IRC server is `ircd`, channel is `#test` |
+| `dev/simojs-data/macros.js` | Empty macro set (`{}`) |
+
+### Live feature reloading
+
+The dev compose mounts `./features` into the container. Edit any feature file on the host and restart the simojs container to pick up changes:
+
+```bash
+docker compose -f docker-compose.dev.yml restart simojs
+```
 
 ## Configuration Files
 

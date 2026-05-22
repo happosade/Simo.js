@@ -1,0 +1,50 @@
+# ── Stage 1: dependency install ─────────────────────────────────────────────
+# npm install runs here. No runtime secrets are present in this stage,
+# so a compromised postinstall script cannot exfiltrate credentials.
+FROM node:20-bullseye-slim AS builder
+
+RUN apt-get update && apt-get install -y \
+      python3 make g++ libicu-dev \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /simobot
+
+# Copy manifest first for layer caching; app code is NOT copied yet.
+COPY package.json ./
+
+# Install all dependencies. No ENV secrets live in this layer.
+RUN npm install --no-fund 2>&1 | tail -5
+
+
+# ── Stage 2: runtime ─────────────────────────────────────────────────────────
+# Secrets only arrive here via bind-mounted volumes at container start.
+FROM node:20-bullseye-slim
+
+RUN apt-get update && apt-get install -y \
+      libicu-dev bash \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN useradd -m -u 1000 simobot
+
+ENV TZ=Europe/Helsinki
+ENV NODE_ENV=development
+
+WORKDIR /simobot
+
+# Pull in compiled node_modules from the isolated build stage.
+COPY --from=builder --chown=simobot:simobot /simobot/node_modules ./node_modules
+
+# Copy application source (features are overridden by volume mount in dev).
+COPY --chown=simobot:simobot ./lib      ./lib
+COPY --chown=simobot:simobot ./macros   ./macros
+COPY --chown=simobot:simobot ./resources ./resources
+COPY --chown=simobot:simobot ./features  ./features
+COPY --chown=simobot:simobot ./templates ./templates
+COPY --chown=simobot:simobot main.js package.json settings.json.example ./
+
+USER simobot
+
+# Wait briefly for ircd to be ready, then start the bot.
+CMD ["sh", "-c", "sleep 4 && node main.js"]

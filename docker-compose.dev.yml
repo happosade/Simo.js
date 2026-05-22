@@ -1,0 +1,45 @@
+# Local development stack.
+# Starts a self-contained IRC server, the Simo.js bot, and Redis.
+# No external IRC server, API keys, or model files required for basic testing.
+#
+# Usage:
+#   docker compose -f docker-compose.dev.yml up --build
+#   docker compose -f docker-compose.dev.yml logs -f simojs
+#
+# Connect an IRC client to localhost:6667 and join #test to interact with Simo.
+
+services:
+
+  # ── Local IRC server ────────────────────────────────────────────────────────
+  ircd:
+    build:
+      context: .
+      dockerfile: Dockerfile_ircdjs
+    ports:
+      - "6667:6667"   # Connect your IRC client here
+    restart: unless-stopped
+
+  # ── Simo.js bot ─────────────────────────────────────────────────────────────
+  simojs:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    depends_on:
+      - ircd
+      - redis
+    volumes:
+      # Dev settings (IRC server = ircd, channel = #test, empty API keys)
+      - "./dev/simojs-data:/simojs-data"
+      # Mount features live so edits are picked up after container restart
+      - "./features:/simobot/features"
+      # HTML templates used by simogpt
+      - "./templates:/templates"
+    restart: unless-stopped
+    # No ports exposed by default; the bot talks to ircd over the internal network.
+
+  # ── Redis ────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - "./dev/redis-data:/data"

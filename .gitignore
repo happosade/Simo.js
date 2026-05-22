@@ -2,9 +2,10 @@ node_modules
 grafana_data
 influxdb_data
 settings_pythonsimo.cfg
-simojs-data
+/simojs-data
 redis-data
 pythonsimo-data
 lib/macros.js
 models/
 gigo/
+dev/redis-data/
